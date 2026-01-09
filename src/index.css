@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DeVirgilio's Surgery Review App - Teal & Gold Medical Theme */
+
+@layer base {
+  :root {
+    --background: 170 20% 97%;
+    --foreground: 175 40% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 175 40% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 175 40% 12%;
+
+    /* Teal - DeVirgilio's Brand */
+    --primary: 175 50% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Gold accent */
+    --secondary: 48 70% 65%;
+    --secondary-foreground: 175 50% 15%;
+
+    --muted: 170 15% 92%;
+    --muted-foreground: 175 15% 40%;
+
+    --accent: 175 25% 90%;
+    --accent-foreground: 175 50% 28%;
+
+    /* Success/Correct - Green */
+    --success: 142 71% 40%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 142 40% 92%;
+
+    /* Error/Incorrect - Red */
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 0 50% 95%;
+
+    /* Warning - Orange */
+    --warning: 25 90% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 25 60% 93%;
+
+    /* Bookmark star - Gold (matching brand) */
+    --star: 48 85% 55%;
+    --star-muted: 48 30% 85%;
+
+    /* Banner - Light teal */
+    --banner: 175 25% 90%;
+    --banner-foreground: 175 45% 22%;
+
+    --border: 170 15% 88%;
+    --input: 170 15% 88%;
+    --ring: 175 50% 32%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 175 30% 20%;
+    --sidebar-primary: 175 50% 32%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 175 25% 90%;
+    --sidebar-accent-foreground: 175 50% 28%;
+    --sidebar-border: 170 15% 88%;
+    --sidebar-ring: 175 50% 32%;
+
+    /* Chart colors */
+    --chart-1: 175 50% 32%;
+    --chart-2: 142 71% 40%;
+    --chart-3: 0 70% 50%;
+    --chart-4: 48 85% 55%;
+    --chart-5: 175 40% 45%;
+  }
+
+  .dark {
+    --background: 175 25% 8%;
+    --foreground: 170 20% 95%;
+
+    --card: 175 20% 12%;
+    --card-foreground: 170 20% 95%;
+
+    --popover: 175 20% 12%;
+    --popover-foreground: 170 20% 95%;
+
+    --primary: 175 50% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 48 65% 55%;
+    --secondary-foreground: 175 50% 12%;
+
+    --muted: 175 15% 18%;
+    --muted-foreground: 170 15% 60%;
+
+    --accent: 175 25% 20%;
+    --accent-foreground: 175 50% 75%;
+
+    --success: 142 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 142 40% 15%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 170 20% 95%;
+    --destructive-muted: 0 40% 15%;
+
+    --warning: 25 85% 55%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 25 40% 15%;
+
+    --star: 48 85% 55%;
+    --star-muted: 48 25% 25%;
+
+    --banner: 175 25% 18%;
+    --banner-foreground: 175 30% 90%;
+
+    --border: 175 15% 20%;
+    --input: 175 15% 20%;
+    --ring: 175 50% 42%;
+
+    --sidebar-background: 175 20% 12%;
+    --sidebar-foreground: 170 20% 95%;
+    --sidebar-primary: 175 50% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 175 25% 20%;
+    --sidebar-accent-foreground: 175 50% 75%;
+    --sidebar-border: 175 15% 20%;
+    --sidebar-ring: 175 50% 42%;
+
+    --chart-1: 175 50% 42%;
+    --chart-2: 142 60% 45%;
+    --chart-3: 0 60% 50%;
+    --chart-4: 48 85% 55%;
+    --chart-5: 175 40% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  .medical-banner {
+    @apply bg-[hsl(var(--banner))] text-[hsl(var(--banner-foreground))];
+  }
+}
