@@ -1,28 +1,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
-interface Question {
-  id: number;
+interface QuestionItem {
   question: string;
-  choices: Record<string, string>;
-  answer: string;
+  options: string[];
+  answerIndex: number;
   explanation: string;
 }
 
-interface Chapter {
-  number: number;
-  title: string;
-  questions: Question[];
+interface ChapterData {
+  chapter: string;
+  items: QuestionItem[];
 }
-
-interface MCQData {
-  chapters: Chapter[];
-}
-
-// Embedded MCQ data - this is a subset for initial import
-const mcqData: MCQData = {
-  chapters: []
-};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -32,74 +21,82 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the data from request body
-    const requestData: MCQData = await req.json();
-    
-    if (!requestData.chapters || requestData.chapters.length === 0) {
+    const chaptersData: ChapterData[] = await req.json();
+
+    if (!chaptersData || chaptersData.length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: 'No chapters provided' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    console.log(`Processing ${requestData.chapters.length} chapters...`);
-    
+
+    console.log(`Processing ${chaptersData.length} chapters...`);
+
     let totalQuestions = 0;
-    
-    for (const chapter of requestData.chapters) {
-      // Insert chapter
-      const { data: chapterData, error: chapterError } = await supabase
+
+    for (let i = 0; i < chaptersData.length; i++) {
+      const ch = chaptersData[i];
+      const chapterNumber = i + 1;
+      // Extract title after "Chapter X: "
+      const title = ch.chapter.replace(/^Chapter \d+:\s*/, '');
+
+      const { data: chapterRow, error: chapterError } = await supabase
         .from('chapters')
         .upsert({
-          chapter_number: chapter.number,
-          title: chapter.title,
-          description: `Chapter ${chapter.number}`,
-          total_questions: chapter.questions.length
+          chapter_number: chapterNumber,
+          title: title,
+          description: ch.chapter,
+          total_questions: ch.items.length
         }, { onConflict: 'chapter_number' })
         .select('id')
         .single();
 
       if (chapterError) {
-        console.error(`Error inserting chapter ${chapter.number}:`, chapterError);
+        console.error(`Error inserting chapter ${chapterNumber}:`, chapterError);
         throw chapterError;
       }
 
-      console.log(`Inserted chapter ${chapter.number}: ${chapter.title} with ${chapter.questions.length} questions`);
+      console.log(`Chapter ${chapterNumber}: ${title} (${ch.items.length} questions)`);
 
-      // Insert questions for this chapter in batches
-      const questionsToInsert = chapter.questions.map(question => ({
-        chapter_id: chapterData.id,
-        question_number: question.id,
-        question_text: question.question,
-        options: question.choices,
-        correct_answer: question.answer,
-        explanation: question.explanation || ''
-      }));
+      // Convert options array to object { A: "...", B: "...", ... }
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      const questionsToInsert = ch.items.map((item, idx) => {
+        const optionsObj: Record<string, string> = {};
+        item.options.forEach((opt, oi) => {
+          optionsObj[letters[oi]] = opt;
+        });
+        const correctLetter = letters[item.answerIndex] || 'A';
+        return {
+          chapter_id: chapterRow.id,
+          question_number: idx + 1,
+          question_text: item.question,
+          options: optionsObj,
+          correct_answer: correctLetter,
+          explanation: item.explanation || ''
+        };
+      });
 
-      // Batch insert questions
-      const { error: questionsError } = await supabase
-        .from('questions')
-        .upsert(questionsToInsert, { onConflict: 'chapter_id,question_number' });
-
-      if (questionsError) {
-        console.error(`Error inserting questions for chapter ${chapter.number}:`, questionsError);
-        throw questionsError;
+      // Batch insert in groups of 100
+      for (let b = 0; b < questionsToInsert.length; b += 100) {
+        const batch = questionsToInsert.slice(b, b + 100);
+        const { error: qErr } = await supabase
+          .from('questions')
+          .upsert(batch, { onConflict: 'chapter_id,question_number' });
+        if (qErr) {
+          console.error(`Error inserting questions batch for ch ${chapterNumber}:`, qErr);
+          throw qErr;
+        }
       }
-      
-      totalQuestions += chapter.questions.length;
+
+      totalQuestions += ch.items.length;
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `Imported ${requestData.chapters.length} chapters and ${totalQuestions} questions` 
-      }),
+      JSON.stringify({ success: true, message: `Imported ${chaptersData.length} chapters and ${totalQuestions} questions` }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Import error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
