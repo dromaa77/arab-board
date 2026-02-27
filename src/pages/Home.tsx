@@ -47,10 +47,7 @@ export default function Home() {
   const [isResettingAll, setIsResettingAll] = useState(false);
   const { resumeByDefault, setResumeByDefault } = useQuizSettings();
   useEffect(() => {
-    // Load chapters - works for both online (with user) and offline modes
-    if (user || !isOnline) {
-      loadChapters();
-    }
+    loadChapters();
   }, [user, isOnline]);
 
   const loadChapters = async () => {
