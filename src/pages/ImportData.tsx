@@ -43,79 +43,19 @@ const ImportData = () => {
     try {
       const chapters = mcqData as ChapterData[];
       const totalChapters = chapters.length;
-      let processedChapters = 0;
       let totalQuestions = 0;
 
+      // Send chapters one at a time to the edge function (uses service role)
       for (let i = 0; i < chapters.length; i++) {
-        const chapter = chapters[i];
-        const chapterNumber = i + 1;
-        const items = chapter.items || [];
+        const { data, error } = await supabase.functions.invoke('import-mcq-data', {
+          body: [chapters[i]]
+        });
 
-        // Convert answerIndex to answer letter (A, B, C, D, E)
-        const getAnswerLetter = (index: number): string => {
-          const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-          return letters[index] || 'A';
-        };
+        if (error) throw error;
+        if (data && !data.success) throw new Error(data.error);
 
-        // Convert options array to object format { A: "...", B: "...", etc }
-        const formatOptions = (options: string[]): Record<string, string> => {
-          const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-          const formatted: Record<string, string> = {};
-          options.forEach((option, idx) => {
-            if (idx < letters.length) {
-              formatted[letters[idx]] = option;
-            }
-          });
-          return formatted;
-        };
-
-        const { data: chapterData, error: chapterError } = await supabase
-          .from('chapters')
-          .upsert(
-            {
-              chapter_number: chapterNumber,
-              title: chapter.chapter,
-              description: `Chapter ${chapterNumber}`,
-              total_questions: items.length,
-            },
-            { onConflict: 'chapter_number' }
-          )
-          .select('id')
-          .single();
-
-        if (chapterError) {
-          console.error(`Error inserting chapter ${chapterNumber}:`, chapterError);
-          throw chapterError;
-        }
-
-        const questionsToInsert = items.map((item: QuestionItem, idx: number) => ({
-          chapter_id: chapterData.id,
-          question_number: idx + 1,
-          question_text: item.question,
-          options: formatOptions(item.options),
-          correct_answer: getAnswerLetter(item.answerIndex),
-          explanation: item.explanation || '',
-        }));
-
-        if (questionsToInsert.length > 0) {
-          // Insert in batches of 100 to avoid timeout
-          const batchSize = 100;
-          for (let j = 0; j < questionsToInsert.length; j += batchSize) {
-            const batch = questionsToInsert.slice(j, j + batchSize);
-            const { error: questionsError } = await supabase
-              .from('questions')
-              .upsert(batch, { onConflict: 'chapter_id,question_number' });
-
-            if (questionsError) {
-              console.error(`Error inserting questions for chapter ${chapterNumber}:`, questionsError);
-              throw questionsError;
-            }
-          }
-        }
-
-        totalQuestions += items.length;
-        processedChapters++;
-        setProgress((processedChapters / totalChapters) * 100);
+        totalQuestions += chapters[i].items.length;
+        setProgress(((i + 1) / totalChapters) * 100);
       }
 
       setResult({
