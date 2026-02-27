@@ -61,14 +61,14 @@ const App = () => (
               <OfflineIndicator />
               <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                <Route path="/quiz/:chapterId" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
-                <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
-                <Route path="/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
-                <Route path="/results/:chapterId" element={<ProtectedRoute><Results /></ProtectedRoute>} />
-                <Route path="/review" element={<ProtectedRoute><Review /></ProtectedRoute>} />
-                <Route path="/review-quiz" element={<ProtectedRoute><ReviewQuiz /></ProtectedRoute>} />
-                <Route path="/import" element={<ProtectedRoute><ImportData /></ProtectedRoute>} />
+                <Route path="/" element={<Home />} />
+                <Route path="/quiz/:chapterId" element={<Quiz />} />
+                <Route path="/bookmarks" element={<Bookmarks />} />
+                <Route path="/statistics" element={<Statistics />} />
+                <Route path="/results/:chapterId" element={<Results />} />
+                <Route path="/review" element={<Review />} />
+                <Route path="/review-quiz" element={<ReviewQuiz />} />
+                <Route path="/import" element={<ImportData />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>
