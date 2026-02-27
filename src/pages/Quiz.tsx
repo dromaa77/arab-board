@@ -123,7 +123,7 @@ export default function Quiz() {
   }, 75);
 
   useEffect(() => {
-    if ((user || !isOnline) && chapterId) {
+    if (chapterId) {
       loadQuiz();
     }
   }, [user, chapterId, isOnline]);
@@ -207,13 +207,18 @@ export default function Quiz() {
       }));
       setQuestions(loadedQuestions);
 
-      const { data: progressData } = await supabase
-        .from('user_progress')
-        .select('question_id, selected_answer, is_correct')
-        .eq('user_id', user!.id);
+      // Only load progress if user is logged in
+      let progressData: any[] = [];
+      if (user) {
+        const { data } = await supabase
+          .from('user_progress')
+          .select('question_id, selected_answer, is_correct')
+          .eq('user_id', user.id);
+        progressData = data || [];
+      }
 
       const progressMap: { [id: string]: { answer: string; isCorrect: boolean } } = {};
-      (progressData || []).forEach(p => {
+      progressData.forEach(p => {
         progressMap[p.question_id] = { answer: p.selected_answer, isCorrect: p.is_correct };
       });
       setUserProgress(progressMap);
