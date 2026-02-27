@@ -22,8 +22,7 @@ import { Loader2, WifiOff } from "lucide-react";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const { isOnline } = useOfflineData();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -31,15 +30,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  // Allow offline access - user can use the app without login
-  if (!user && !isOnline) {
-    return <>{children}</>;
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;
